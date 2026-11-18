@@ -1,122 +1,152 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+
+import { useEffect, useState } from "react";
+import { getHeroes, createHero } from "./services/api";
 
 function App() {
-  const [count, setCount] = useState(0)
+    const [heroes, setHeroes] = useState([]);
+    const [name, setName] = useState("");
+    const [universe, setUniverse] = useState("");
+    const [power, setPower] = useState("");
+    const [message, setMessage] = useState("");
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    async function loadHeroes() {
+        try {
+            const data = await getHeroes();
+            setHeroes(data);
+        } catch (error) {
+            console.error(error);
+            setMessage("Erro ao carregar heróis.");
+        }
+    }
 
-      <div className="ticks"></div>
+    useEffect(() => {
+        loadHeroes();
+    }, []);
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+    async function handleSubmit(event) {
+        event.preventDefault();
+        setMessage("");
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        try {
+            await createHero({ name, universe, power });
+
+            setName("");
+            setUniverse("");
+            setPower("");
+            setMessage("Herói cadastrado!");
+
+            await loadHeroes();
+        } catch (error) {
+            console.error(error);
+            setMessage("Erro ao cadastrar herói.");
+        }
+    }
+
+    return (
+        <main className="min-h-screen bg-black text-white p-6 md:p-10">
+
+            <div className="max-w-5xl mx-auto">
+
+                <h1 className="text-3xl font-bold mb-2">
+                    Superheroes<span className="text-red-600">.</span>
+                </h1>
+
+                <p className="text-gray-500 mb-8">
+                    Cadastro de personagens
+                </p>
+
+                <section className="bg-[#181818] p-5 rounded-lg mb-10">
+                    <h2 className="text-xl font-semibold mb-5">
+                        Novo herói
+                    </h2>
+
+                    <form onSubmit={handleSubmit} className="space-y-3">
+
+                        <input
+                            type="text"
+                            placeholder="Nome"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            required
+                            className="w-full bg-[#252525] p-3 rounded outline-none focus:ring-1 focus:ring-red-600"
+                        />
+
+                        <input
+                            type="text"
+                            placeholder="Universo"
+                            value={universe}
+                            onChange={(e) => setUniverse(e.target.value)}
+                            required
+                            className="w-full bg-[#252525] p-3 rounded outline-none focus:ring-1 focus:ring-red-600"
+                        />
+
+                        <input
+                            type="text"
+                            placeholder="Poder"
+                            value={power}
+                            onChange={(e) => setPower(e.target.value)}
+                            required
+                            className="w-full bg-[#252525] p-3 rounded outline-none focus:ring-1 focus:ring-red-600"
+                        />
+
+                        <button
+                            type="submit"
+                            className="bg-red-600 hover:bg-red-700 px-5 py-3 rounded font-semibold transition"
+                        >
+                            Cadastrar
+                        </button>
+
+                    </form>
+
+                    {message && (
+                        <p className="text-sm text-gray-300 mt-3">
+                            {message}
+                        </p>
+                    )}
+                </section>
+
+                <section>
+                    <div className="flex justify-between items-center mb-5">
+                        <h2 className="text-xl font-semibold">
+                            Heróis cadastrados
+                        </h2>
+
+                        <span className="text-gray-500 text-sm">
+                            {heroes.length} heróis
+                        </span>
+                    </div>
+
+                    {heroes.length === 0 ? (
+                        <p className="text-gray-500">
+                            Nenhum herói cadastrado.
+                        </p>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {heroes.map((hero) => (
+                                <article
+                                    key={hero.id}
+                                    className="bg-[#181818] p-5 rounded-lg border border-[#303030]"
+                                >
+                                    <p className="text-red-500 text-sm mb-2">
+                                        {hero.universe}
+                                    </p>
+
+                                    <h3 className="text-xl font-bold mb-3">
+                                        {hero.name}
+                                    </h3>
+
+                                    <p className="text-gray-400 text-sm">
+                                        Poder: {hero.power}
+                                    </p>
+                                </article>
+                            ))}
+                        </div>
+                    )}
+                </section>
+
+            </div>
+        </main>
+    );
 }
 
-export default App
+export default App;
