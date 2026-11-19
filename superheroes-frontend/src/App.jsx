@@ -1,6 +1,5 @@
-
 import { useEffect, useState } from "react";
-import { getHeroes, createHero } from "./services/api";
+import { getHeroes, createHero, updateHero, deleteHero } from "./services/api";
 
 function App() {
     const [heroes, setHeroes] = useState([]);
@@ -8,6 +7,7 @@ function App() {
     const [universe, setUniverse] = useState("");
     const [power, setPower] = useState("");
     const [message, setMessage] = useState("");
+    const [editingId, setEditingId] = useState(null);
 
     async function loadHeroes() {
         try {
@@ -19,6 +19,21 @@ function App() {
         }
     }
 
+    function clearForm() {
+        setName("");
+        setUniverse("");
+        setPower("");
+        setEditingId(null);
+}
+
+    function handleEdit(hero) {
+        setEditingId(hero.id);
+        setName(hero.name);
+        setUniverse(hero.universe);
+        setPower(hero.power);
+        setMessage("");
+}
+
     useEffect(() => {
         loadHeroes();
     }, []);
@@ -26,21 +41,49 @@ function App() {
     async function handleSubmit(event) {
         event.preventDefault();
         setMessage("");
+        
+        const hero = { name, universe, power };
+  try {
+        if (editingId !== null) {
+            await updateHero(editingId, hero);
+            setMessage("Herói atualizado!");
+        } else {
+            await createHero(hero);
+            setMessage("Herói cadastrado!");
+        }
+
+        clearForm();
+        await loadHeroes();
+
+    } catch (error) {
+        console.error(error);
+        setMessage("Erro ao salvar herói.");
+    }
+}
+
+    async function handleDelete(id) {
+    const confirmed = window.confirm(
+        "Tem certeza que deseja excluir este herói?"
+    );
+
+        if (!confirmed) return;
 
         try {
-            await createHero({ name, universe, power });
+            await deleteHero(id);
 
-            setName("");
-            setUniverse("");
-            setPower("");
-            setMessage("Herói cadastrado!");
-
-            await loadHeroes();
-        } catch (error) {
-            console.error(error);
-            setMessage("Erro ao cadastrar herói.");
+            if (editingId === id) {
+                clearForm();
         }
+
+            setMessage("Herói excluído!");
+            await loadHeroes();
+
+    }   catch (error) {
+            console.error(error);
+            setMessage("Erro ao excluir herói.");
     }
+}
+
 
     return (
         <main className="min-h-screen bg-black text-white p-6 md:p-10">
@@ -57,7 +100,7 @@ function App() {
 
                 <section className="bg-[#181818] p-5 rounded-lg mb-10">
                     <h2 className="text-xl font-semibold mb-5">
-                        Novo herói
+                        {editingId !== null ? "Editar herói" : "Novo herói"}
                     </h2>
 
                     <form onSubmit={handleSubmit} className="space-y-3">
@@ -89,12 +132,25 @@ function App() {
                             className="w-full bg-[#252525] p-3 rounded outline-none focus:ring-1 focus:ring-red-600"
                         />
 
-                        <button
-                            type="submit"
-                            className="bg-red-600 hover:bg-red-700 px-5 py-3 rounded font-semibold transition"
-                        >
-                            Cadastrar
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                type="submit"
+                                className="bg-red-600 hover:bg-red-700 px-5 py-3 rounded font-semibold transition"      
+                            >
+                                {editingId !== null ? "Salvar alterações" : "Cadastrar"}
+                            </button>
+
+                        {editingId !== null && (
+                            <button
+                                type="button"
+                                onClick={clearForm}
+                                className="bg-[#333] hover:bg-[#444] px-5 py-3 rounded font-semibold transition"
+                            >
+                                Cancelar
+                            </button>
+
+                        )}
+                        </div>
 
                     </form>
 
@@ -138,6 +194,22 @@ function App() {
                                     <p className="text-gray-400 text-sm">
                                         Poder: {hero.power}
                                     </p>
+
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handleEdit(hero)}
+                                            className="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-sm font-semibold transition"
+                                        >
+                                        Editar
+                                        </button>
+
+                                        <button
+                                            onClick={() => handleDelete(hero.id)}
+                                            className="bg-[#333] hover:bg-[#444] px-3 py-2 rounded text-sm font-semibold transition"
+                                        >
+                                            Excluir
+                                        </button>
+                                    </div>
                                 </article>
                             ))}
                         </div>

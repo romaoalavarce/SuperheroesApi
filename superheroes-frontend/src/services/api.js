@@ -1,4 +1,3 @@
-
 const API_URL = "http://localhost:3000/heroes";
 
 export async function getHeroes() {
@@ -25,4 +24,31 @@ export async function createHero(hero) {
     }
 
     return response.json();
+}
+export async function updateHero(id, hero) {
+    const response = await fetch(`${API_URL}/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(hero)
+    });
+
+    if (!response.ok) {
+        throw new Error("Erro ao atualizar herói");
+    }
+
+    return response.json();
+}
+
+export async function deleteHero(id) {
+    const response = await fetch(`${API_URL}/${id}`, {
+        method: "DELETE"
+    });
+
+    if (!response.ok) {
+        throw new Error("Erro ao excluir herói");
+    }
+
+    return response;
 }
